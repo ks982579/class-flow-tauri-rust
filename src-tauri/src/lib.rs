@@ -36,6 +36,7 @@ pub fn run() {
             platform::remove_step,
             platform::connect_steps,
             platform::disconnect_steps,
+            platform::connect_methods,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

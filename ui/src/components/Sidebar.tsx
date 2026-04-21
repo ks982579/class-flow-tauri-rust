@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { Class, Namespace, Workflow } from '../types';
+import { useStore } from '../store';
 import './Sidebar.css';
 
 interface Props {
@@ -25,6 +26,7 @@ export default function Sidebar({
   onRemoveClass,
   onRemoveNamespace,
 }: Props) {
+  const { activeWorkflowId, setActiveWorkflowId } = useStore();
   const [expandedNs, setExpandedNs] = useState<Set<string>>(new Set());
 
   function toggleNs(id: string) {
@@ -93,7 +95,11 @@ export default function Sidebar({
           <div className="sidebar-empty">No workflows yet</div>
         )}
         {workflows.map(wf => (
-          <div key={wf.id} className="wf-row">
+          <div
+            key={wf.id}
+            className={`wf-row ${activeWorkflowId === wf.id ? 'active' : ''}`}
+            onClick={() => setActiveWorkflowId(activeWorkflowId === wf.id ? null : wf.id)}
+          >
             <span className="wf-icon">⇢</span>
             <span className="wf-name">{wf.name}</span>
             <span className="wf-steps">{wf.steps.length} steps</span>

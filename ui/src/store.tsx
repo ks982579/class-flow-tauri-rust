@@ -6,8 +6,10 @@ interface NodePosition { x: number; y: number }
 interface StoreValue {
   workspace: Workspace | null;
   positions: Record<string, NodePosition>;
+  activeWorkflowId: string | null;
   setWorkspace: (ws: Workspace) => void;
   setPosition: (classId: string, pos: NodePosition) => void;
+  setActiveWorkflowId: (id: string | null) => void;
 }
 
 const Store = createContext<StoreValue | null>(null);
@@ -21,26 +23,27 @@ function autoPosition(index: number): NodePosition {
 export function StoreProvider({ children }: { children: ReactNode }) {
   const [workspace, setWorkspaceRaw] = useState<Workspace | null>(null);
   const [positions, setPositions] = useState<Record<string, NodePosition>>({});
+  const [activeWorkflowId, setActiveWorkflowId] = useState<string | null>(null);
 
   const setWorkspace = useCallback((ws: Workspace) => {
     setWorkspaceRaw(_prev => {
-      // Assign positions to any class that doesn't have one yet
       const allClasses = ws.namespaces.flatMap(n => n.classes);
       setPositions(prevPos => {
         const next = { ...prevPos };
         let newCount = Object.keys(next).length;
         for (const cls of allClasses) {
-          if (!next[cls.id]) {
-            next[cls.id] = autoPosition(newCount++);
-          }
+          if (!next[cls.id]) next[cls.id] = autoPosition(newCount++);
         }
-        // Remove positions for classes that no longer exist
         const ids = new Set(allClasses.map(c => c.id));
         for (const id of Object.keys(next)) {
           if (!ids.has(id)) delete next[id];
         }
         return next;
       });
+      // Clear active workflow if it was deleted
+      setActiveWorkflowId(prev =>
+        prev && !ws.workflows.find(w => w.id === prev) ? null : prev
+      );
       return ws;
     });
   }, []);
@@ -50,7 +53,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, []);
 
   return (
-    <Store.Provider value={{ workspace, positions, setWorkspace, setPosition }}>
+    <Store.Provider value={{ workspace, positions, activeWorkflowId, setWorkspace, setPosition, setActiveWorkflowId }}>
       {children}
     </Store.Provider>
   );

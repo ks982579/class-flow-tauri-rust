@@ -7,16 +7,18 @@ import type { Class } from './types';
 
 import Sidebar from './components/Sidebar';
 import Canvas from './components/Canvas';
+import WorkflowPanel from './components/WorkflowPanel';
 import NewWorkspaceModal from './components/NewWorkspaceModal';
 import NewNamespaceModal from './components/NewNamespaceModal';
+import NewWorkflowModal from './components/NewWorkflowModal';
 import ClassEditorModal from './components/ClassEditorModal';
 
 import './App.css';
 
-type Modal = 'workspace' | 'namespace' | 'class' | null;
+type Modal = 'workspace' | 'namespace' | 'class' | 'workflow' | null;
 
 export default function App() {
-  const { workspace, setWorkspace } = useStore();
+  const { workspace, activeWorkflowId, setWorkspace } = useStore();
   const [modal, setModal] = useState<Modal>(null);
   const [editingClass, setEditingClass] = useState<Class | undefined>();
 
@@ -38,11 +40,7 @@ export default function App() {
     try { setWorkspace(await api.removeNamespace(id)); } catch { /* swallow */ }
   }
 
-  async function handleNewWorkflow() {
-    const name = prompt('Workflow name:')?.trim();
-    if (!name) return;
-    try { setWorkspace(await api.addWorkflow(name)); } catch { /* swallow */ }
-  }
+  const activeWorkflow = workspace?.workflows.find(w => w.id === activeWorkflowId) ?? null;
 
   return (
     <div className="app">
@@ -64,7 +62,7 @@ export default function App() {
             workflows={workspace.workflows}
             onNewNamespace={() => setModal('namespace')}
             onNewClass={() => { setEditingClass(undefined); setModal('class'); }}
-            onNewWorkflow={handleNewWorkflow}
+            onNewWorkflow={() => setModal('workflow')}
             onEditClass={openEditClass}
             onRemoveClass={handleRemoveClass}
             onRemoveNamespace={handleRemoveNamespace}
@@ -72,11 +70,15 @@ export default function App() {
           <ReactFlowProvider>
             <Canvas onEditClass={openEditClass} />
           </ReactFlowProvider>
+          {activeWorkflow && (
+            <WorkflowPanel workflow={activeWorkflow} workspace={workspace} />
+          )}
         </>
       )}
 
       {modal === 'workspace' && <NewWorkspaceModal onClose={closeModal} />}
       {modal === 'namespace' && <NewNamespaceModal onClose={closeModal} />}
+      {modal === 'workflow'  && <NewWorkflowModal  onClose={closeModal} />}
       {modal === 'class' && workspace && (
         <ClassEditorModal
           onClose={closeModal}

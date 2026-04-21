@@ -34,3 +34,37 @@
 
 .react-flow__edge-path { stroke: var(--accent); }
 .react-flow__connectionline { stroke: var(--accent); }
+
+/* Workflow edit mode bar */
+.canvas-mode-bar {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 14px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--accent);
+  border-radius: 20px;
+  font-size: 11px;
+  color: var(--text-muted);
+  pointer-events: none;
+  white-space: nowrap;
+}
+.canvas-mode-bar strong { color: var(--accent); font-weight: 600; }
+.canvas-mode-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  flex-shrink: 0;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+.canvas-mode-hint { color: var(--text-dim); font-size: 10px; }
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.3; }
+}

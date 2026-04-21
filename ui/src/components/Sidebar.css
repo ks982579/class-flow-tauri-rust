@@ -99,8 +99,15 @@
   align-items: center;
   gap: 6px;
   padding: 3px 10px;
+  cursor: pointer;
+  border-left: 2px solid transparent;
 }
-.wf-row:hover { background: var(--bg-hover); }
+.wf-row:hover   { background: var(--bg-hover); }
+.wf-row.active  {
+  background: var(--accent-dim);
+  border-left-color: var(--accent);
+}
+.wf-row.active .wf-name { color: var(--accent); }
 
 .wf-icon  { color: var(--text-dim); font-size: 12px; }
 .wf-name  { flex: 1; font-size: 12px; color: var(--text-primary); }

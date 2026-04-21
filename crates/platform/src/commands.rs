@@ -321,3 +321,22 @@ pub fn disconnect_steps(
     auto_save(&state, &ws_clone).map_err(String::from)?;
     Ok(ws_clone)
 }
+
+#[tauri::command]
+pub fn connect_methods(
+    workflow_id: Uuid,
+    from_class_id: Uuid,
+    from_method_id: Uuid,
+    to_class_id: Uuid,
+    to_method_id: Uuid,
+    state: State<AppState>,
+) -> Result<Workspace, String> {
+    let bridge = CoreBridge;
+    let mut guard = state.workspace.lock().unwrap();
+    let ws = guard.as_mut().ok_or(PlatformError::NoWorkspace)?;
+    bridge.connect_methods(ws, workflow_id, from_class_id, from_method_id, to_class_id, to_method_id)?;
+    let ws_clone = ws.clone();
+    drop(guard);
+    auto_save(&state, &ws_clone).map_err(String::from)?;
+    Ok(ws_clone)
+}

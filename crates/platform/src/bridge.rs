@@ -54,6 +54,19 @@ pub trait PlatformBridge {
         to_step_id: Uuid,
     ) -> BridgeResult<()>;
 
+    /// Find-or-create a MethodCall step for each endpoint, then connect them.
+    /// Reuses an existing step when the same class+method is already in the workflow,
+    /// so multiple edges can fan out from a single step node.
+    fn connect_methods(
+        &self,
+        ws: &mut Workspace,
+        workflow_id: Uuid,
+        from_class_id: Uuid,
+        from_method_id: Uuid,
+        to_class_id: Uuid,
+        to_method_id: Uuid,
+    ) -> BridgeResult<()>;
+
     fn add_property(
         &self,
         ws: &mut Workspace,
@@ -75,6 +88,21 @@ pub trait PlatformBridge {
         class_id: Uuid,
         method_id: Uuid,
     ) -> BridgeResult<()>;
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+fn find_or_create_method_step(wf: &mut core::Workflow, class_id: Uuid, method_id: Uuid) -> Uuid {
+    if let Some(existing) = wf.steps.iter().find(|s| {
+        matches!(&s.kind, StepKind::MethodCall { class_id: cid, method_id: mid }
+            if *cid == class_id && *mid == method_id)
+    }) {
+        return existing.id;
+    }
+    let step = WorkflowStep::new(StepKind::MethodCall { class_id, method_id });
+    let id = step.id;
+    wf.add_step(step);
+    id
 }
 
 // ── Default implementation ────────────────────────────────────────────────────
@@ -218,6 +246,24 @@ impl PlatformBridge for CoreBridge {
         ws.workflow_mut(workflow_id)
             .ok_or_else(|| PlatformError::NotFound(format!("workflow {workflow_id}")))?
             .disconnect(from_step_id, to_step_id);
+        Ok(())
+    }
+
+    fn connect_methods(
+        &self,
+        ws: &mut Workspace,
+        workflow_id: Uuid,
+        from_class_id: Uuid,
+        from_method_id: Uuid,
+        to_class_id: Uuid,
+        to_method_id: Uuid,
+    ) -> BridgeResult<()> {
+        let wf = ws.workflow_mut(workflow_id)
+            .ok_or_else(|| PlatformError::NotFound(format!("workflow {workflow_id}")))?;
+
+        let from_id = find_or_create_method_step(wf, from_class_id, from_method_id);
+        let to_id   = find_or_create_method_step(wf, to_class_id, to_method_id);
+        wf.connect(from_id, to_id);
         Ok(())
     }
 

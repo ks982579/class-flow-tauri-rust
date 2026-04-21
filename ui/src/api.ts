@@ -64,4 +64,11 @@ export const api = {
 
   disconnectSteps: (workflowId: string, fromStepId: string, toStepId: string) =>
     invoke<Workspace>('disconnect_steps', { workflowId, fromStepId, toStepId }),
+
+  connectMethods: (
+    workflowId: string,
+    fromClassId: string, fromMethodId: string,
+    toClassId: string,  toMethodId: string,
+  ) =>
+    invoke<Workspace>('connect_methods', { workflowId, fromClassId, fromMethodId, toClassId, toMethodId }),
 };
