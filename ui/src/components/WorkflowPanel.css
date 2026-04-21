@@ -99,6 +99,41 @@
   line-height: 1;
 }
 
+.wp-add-step {
+  padding: 6px 8px;
+  border-top: 1px solid var(--border);
+}
+
+.wp-add-btn {
+  width: 100%;
+  font-size: 11px;
+  text-align: left;
+  color: var(--text-dim);
+}
+.wp-add-btn:hover { color: var(--accent); }
+
+.wp-mutation-form {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.wp-mutation-form select {
+  font-size: 11px;
+  padding: 4px 6px;
+}
+
+.wp-mutation-actions {
+  display: flex;
+  gap: 5px;
+  justify-content: flex-end;
+}
+
+.wp-mutation-actions button {
+  font-size: 11px;
+  padding: 3px 8px;
+}
+
 .wp-footer {
   padding: 10px;
   border-top: 1px solid var(--border);

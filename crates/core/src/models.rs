@@ -162,10 +162,12 @@ pub enum MutationAction {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "kind", rename_all = "camelCase")]
 pub enum StepKind {
+    #[serde(rename_all = "camelCase")]
     MethodCall {
         class_id: Uuid,
         method_id: Uuid,
     },
+    #[serde(rename_all = "camelCase")]
     ClassMutation {
         class_id: Uuid,
         action: MutationAction,
@@ -373,6 +375,21 @@ mod tests {
         assert_eq!(ws.namespaces.len(), 1);
         ws.remove_namespace(ns_id);
         assert_eq!(ws.namespaces.len(), 0);
+    }
+
+    #[test]
+    fn step_kind_serializes_camel_case_fields() {
+        let kind = StepKind::MethodCall {
+            class_id: Uuid::new_v4(),
+            method_id: Uuid::new_v4(),
+        };
+        let json = serde_json::to_string(&kind).unwrap();
+        assert!(json.contains("\"classId\""), "expected classId, got: {json}");
+        assert!(json.contains("\"methodId\""), "expected methodId, got: {json}");
+        assert!(json.contains("\"kind\":\"methodCall\""), "expected methodCall tag, got: {json}");
+        // Confirm round-trip
+        let restored: StepKind = serde_json::from_str(&json).unwrap();
+        assert!(matches!(restored, StepKind::MethodCall { .. }));
     }
 
     #[test]

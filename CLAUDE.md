@@ -59,6 +59,30 @@ A planned optional module will accept a path to a source file (e.g. a `.cs` file
 
 Dark retro palette — low-brightness backgrounds, muted accent colors, easy on the eyes. No bright whites or high-contrast neons. Canvas renders classes as nodes with labeled ports (methods/properties); edges between ports represent workflow steps.
 
+## Crate layout
+
+```
+Cargo.toml            ← workspace manifest
+crates/
+  core/               ← domain types, serde, all #[cfg(test)] unit tests
+  platform/           ← PlatformBridge trait, Tauri commands, AppState, auto-save
+src-tauri/            ← Tauri binary shell, registers plugin + commands
+ui/                   ← Vite + React + TypeScript frontend
+  src/
+    types.ts          ← TS mirror of all core Rust types (camelCase)
+    api.ts            ← typed wrappers for every Tauri invoke call
+    store.tsx         ← React context: workspace state + canvas positions + activeWorkflowId
+    components/       ← Toolbar, Sidebar, Canvas, ClassNode, WorkflowPanel, modals
+docs/                 ← DESIGN_SPEC.md, ARCHITECTURE.md, PLAN.md
+```
+
+## Key conventions
+
+- **All mutating Tauri commands return the full updated `Workspace`** — the frontend replaces its state in one step.
+- **serde camelCase**: all Rust structs use `#[serde(rename_all = "camelCase")]`; `StepKind` enum variants also carry `#[serde(rename_all = "camelCase")]` individually (enum-level `rename_all` only renames the tag, not the variant fields).
+- **Node positions** are frontend-only state (not persisted to the workspace JSON). They live in `store.tsx` and survive in-session.
+- **`connect_methods`** is the atomic Tauri command for wiring workflow steps from the canvas — it find-or-creates `MethodCall` steps and connects them in one call.
+
 ## Documentation
 
 | File | Purpose |

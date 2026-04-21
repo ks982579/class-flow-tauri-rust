@@ -5,6 +5,7 @@ import { useStore } from './store';
 import { api } from './api';
 import type { Class } from './types';
 
+import Toolbar from './components/Toolbar';
 import Sidebar from './components/Sidebar';
 import Canvas from './components/Canvas';
 import WorkflowPanel from './components/WorkflowPanel';
@@ -44,37 +45,41 @@ export default function App() {
 
   return (
     <div className="app">
-      {!workspace ? (
-        <div className="welcome">
-          <div className="welcome-box">
-            <div className="welcome-title">class-flow</div>
-            <div className="welcome-sub">Design and visualise class workflows</div>
-            <button className="primary" onClick={() => setModal('workspace')}>
-              New Workspace
-            </button>
+      <Toolbar onNewWorkspace={() => setModal('workspace')} />
+
+      <div className="app-body">
+        {!workspace ? (
+          <div className="welcome">
+            <div className="welcome-box">
+              <div className="welcome-title">class-flow</div>
+              <div className="welcome-sub">Design and visualise class workflows</div>
+              <div className="welcome-actions">
+                <button className="primary" onClick={() => setModal('workspace')}>New Workspace</button>
+              </div>
+            </div>
           </div>
-        </div>
-      ) : (
-        <>
-          <Sidebar
-            workspaceName={workspace.name}
-            namespaces={workspace.namespaces}
-            workflows={workspace.workflows}
-            onNewNamespace={() => setModal('namespace')}
-            onNewClass={() => { setEditingClass(undefined); setModal('class'); }}
-            onNewWorkflow={() => setModal('workflow')}
-            onEditClass={openEditClass}
-            onRemoveClass={handleRemoveClass}
-            onRemoveNamespace={handleRemoveNamespace}
-          />
-          <ReactFlowProvider>
-            <Canvas onEditClass={openEditClass} />
-          </ReactFlowProvider>
-          {activeWorkflow && (
-            <WorkflowPanel workflow={activeWorkflow} workspace={workspace} />
-          )}
-        </>
-      )}
+        ) : (
+          <>
+            <Sidebar
+              workspaceName={workspace.name}
+              namespaces={workspace.namespaces}
+              workflows={workspace.workflows}
+              onNewNamespace={() => setModal('namespace')}
+              onNewClass={() => { setEditingClass(undefined); setModal('class'); }}
+              onNewWorkflow={() => setModal('workflow')}
+              onEditClass={openEditClass}
+              onRemoveClass={handleRemoveClass}
+              onRemoveNamespace={handleRemoveNamespace}
+            />
+            <ReactFlowProvider>
+              <Canvas onEditClass={openEditClass} />
+            </ReactFlowProvider>
+            {activeWorkflow && (
+              <WorkflowPanel workflow={activeWorkflow} workspace={workspace} />
+            )}
+          </>
+        )}
+      </div>
 
       {modal === 'workspace' && <NewWorkspaceModal onClose={closeModal} />}
       {modal === 'namespace' && <NewNamespaceModal onClose={closeModal} />}

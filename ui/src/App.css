@@ -1,10 +1,17 @@
 .app {
   display: flex;
+  flex-direction: column;
   height: 100%;
   width: 100%;
 }
 
-/* Welcome screen */
+.app-body {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* Welcome screen — inside .app-body */
 .welcome {
   flex: 1;
   display: flex;
@@ -36,7 +43,12 @@
   margin-bottom: 8px;
 }
 
-.welcome-box button {
+.welcome-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.welcome-actions button {
   padding: 8px 24px;
   font-size: 13px;
 }
