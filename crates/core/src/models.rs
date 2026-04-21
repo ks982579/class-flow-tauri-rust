@@ -20,12 +20,14 @@ impl Default for AccessModifier {
 // ── Class members ─────────────────────────────────────────────────────────────
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Parameter {
     pub name: String,
     pub type_annotation: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Property {
     pub id: Uuid,
     pub name: String,
@@ -49,6 +51,7 @@ impl Property {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Method {
     pub id: Uuid,
     pub name: String,
@@ -74,6 +77,7 @@ impl Method {
 // ── Class ─────────────────────────────────────────────────────────────────────
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Class {
     pub id: Uuid,
     pub name: String,
@@ -149,14 +153,14 @@ impl Namespace {
 // ── Workflow ──────────────────────────────────────────────────────────────────
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
+#[serde(rename_all = "camelCase")]
 pub enum MutationAction {
     Create,
     Update,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(tag = "kind", rename_all = "snake_case")]
+#[serde(tag = "kind", rename_all = "camelCase")]
 pub enum StepKind {
     MethodCall {
         class_id: Uuid,
@@ -169,6 +173,7 @@ pub enum StepKind {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct WorkflowStep {
     pub id: Uuid,
     pub kind: StepKind,
@@ -184,6 +189,7 @@ impl WorkflowStep {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct StepEdge {
     pub from_step_id: Uuid,
     pub to_step_id: Uuid,

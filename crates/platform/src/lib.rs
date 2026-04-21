@@ -1,1 +1,7 @@
-// Placeholder — PlatformBridge trait and Tauri commands added in Phase 2
+pub mod bridge;
+pub mod commands;
+pub mod error;
+pub mod state;
+
+pub use commands::*;
+pub use state::AppState;

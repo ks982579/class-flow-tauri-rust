@@ -11,19 +11,15 @@ The UI will be built with Tauri, but Tauri must never be imported directly into 
 ## Build & Run
 
 ```bash
-cargo build          # compile
-cargo run            # run
+cargo tauri dev      # start app (launches Vite dev server + Tauri window)
+cargo tauri build    # production bundle
 cargo test           # all tests
-cargo test <name>    # single test by name filter
+cargo test -p core   # tests for a specific crate
 cargo clippy         # lint
 cargo fmt            # format
 ```
 
-Once Tauri is added:
-```bash
-cargo tauri dev      # dev server with hot-reload
-cargo tauri build    # production bundle
-```
+> `cargo run` is not useful here — the Tauri window loads the UI from the Vite dev server on `localhost:5173`. Without it running, the window shows a connection error. Always use `cargo tauri dev`.
 
 ## Architecture
 

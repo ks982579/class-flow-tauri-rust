@@ -1,0 +1,140 @@
+.class-node {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  min-width: 220px;
+  max-width: 340px;
+  font-size: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+  transition: border-color 0.15s;
+}
+.class-node:hover       { border-color: var(--accent); }
+.class-node.global      { border-color: var(--badge-global-text); }
+.class-node.global:hover{ border-color: var(--badge-global-text); filter: brightness(1.1); }
+
+/* Selected state injected by React Flow */
+.class-node.selected,
+.react-flow__node.selected .class-node { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+
+.class-node-header {
+  padding: 7px 10px 6px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-elevated);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+}
+
+.class-node-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.class-name {
+  color: var(--accent);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.badge-global {
+  font-size: 9px;
+  padding: 1px 5px;
+  border-radius: 10px;
+  background: var(--badge-global);
+  color: var(--badge-global-text);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.class-node-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 2px;
+}
+
+.ns-label {
+  font-size: 10px;
+  color: var(--text-dim);
+}
+
+.node-edit-btn {
+  font-size: 11px;
+  padding: 1px 4px;
+  opacity: 0;
+  transition: opacity 0.1s;
+}
+.class-node:hover .node-edit-btn { opacity: 1; }
+
+.class-node-section { padding: 4px 0; }
+
+.class-node-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 0 10px;
+}
+
+.class-node-empty {
+  padding: 8px 10px;
+  color: var(--text-dim);
+  font-size: 11px;
+  font-style: italic;
+}
+
+.member-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 10px;
+  position: relative;
+}
+.member-row:hover { background: var(--bg-hover); }
+
+.method-row { padding-right: 18px; padding-left: 18px; }
+
+.access-sym {
+  font-weight: 700;
+  width: 10px;
+  text-align: center;
+  flex-shrink: 0;
+}
+.access-public    { color: var(--mod-public); }
+.access-private   { color: var(--mod-private); }
+.access-protected { color: var(--mod-protected); }
+
+.member-name {
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+.member-type {
+  color: var(--text-muted);
+  font-size: 11px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+}
+
+.mod-badge {
+  font-size: 9px;
+  padding: 0 4px;
+  border-radius: 3px;
+  letter-spacing: 0.04em;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.mod-badge.static   { background: rgba(80,144,176,0.2); color: var(--mod-static); }
+.mod-badge.readonly { background: var(--amber-dim); color: var(--amber); }
+
+/* React Flow handles sitting on method rows */
+.method-handle {
+  width: 8px !important;
+  height: 8px !important;
+  background: var(--border) !important;
+  border: 1px solid var(--bg-active) !important;
+  border-radius: 50% !important;
+  transition: background 0.1s !important;
+}
+.method-handle:hover {
+  background: var(--accent) !important;
+}

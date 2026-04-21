@@ -1,121 +1,89 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import { useState, useCallback } from 'react';
+import { ReactFlowProvider } from '@xyflow/react';
 
-function App() {
-  const [count, setCount] = useState(0)
+import { useStore } from './store';
+import { api } from './api';
+import type { Class } from './types';
+
+import Sidebar from './components/Sidebar';
+import Canvas from './components/Canvas';
+import NewWorkspaceModal from './components/NewWorkspaceModal';
+import NewNamespaceModal from './components/NewNamespaceModal';
+import ClassEditorModal from './components/ClassEditorModal';
+
+import './App.css';
+
+type Modal = 'workspace' | 'namespace' | 'class' | null;
+
+export default function App() {
+  const { workspace, setWorkspace } = useStore();
+  const [modal, setModal] = useState<Modal>(null);
+  const [editingClass, setEditingClass] = useState<Class | undefined>();
+
+  const closeModal = useCallback(() => {
+    setModal(null);
+    setEditingClass(undefined);
+  }, []);
+
+  const openEditClass = useCallback((cls: Class) => {
+    setEditingClass(cls);
+    setModal('class');
+  }, []);
+
+  async function handleRemoveClass(classId: string) {
+    try { setWorkspace(await api.removeClass(classId)); } catch { /* swallow */ }
+  }
+
+  async function handleRemoveNamespace(id: string) {
+    try { setWorkspace(await api.removeNamespace(id)); } catch { /* swallow */ }
+  }
+
+  async function handleNewWorkflow() {
+    const name = prompt('Workflow name:')?.trim();
+    if (!name) return;
+    try { setWorkspace(await api.addWorkflow(name)); } catch { /* swallow */ }
+  }
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
+    <div className="app">
+      {!workspace ? (
+        <div className="welcome">
+          <div className="welcome-box">
+            <div className="welcome-title">class-flow</div>
+            <div className="welcome-sub">Design and visualise class workflows</div>
+            <button className="primary" onClick={() => setModal('workspace')}>
+              New Workspace
+            </button>
+          </div>
         </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+      ) : (
+        <>
+          <Sidebar
+            workspaceName={workspace.name}
+            namespaces={workspace.namespaces}
+            workflows={workspace.workflows}
+            onNewNamespace={() => setModal('namespace')}
+            onNewClass={() => { setEditingClass(undefined); setModal('class'); }}
+            onNewWorkflow={handleNewWorkflow}
+            onEditClass={openEditClass}
+            onRemoveClass={handleRemoveClass}
+            onRemoveNamespace={handleRemoveNamespace}
+          />
+          <ReactFlowProvider>
+            <Canvas onEditClass={openEditClass} />
+          </ReactFlowProvider>
+        </>
+      )}
 
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+      {modal === 'workspace' && <NewWorkspaceModal onClose={closeModal} />}
+      {modal === 'namespace' && <NewNamespaceModal onClose={closeModal} />}
+      {modal === 'class' && workspace && (
+        <ClassEditorModal
+          onClose={closeModal}
+          namespaces={workspace.namespaces}
+          editing={editingClass}
+        />
+      )}
+    </div>
+  );
 }
-
-export default App

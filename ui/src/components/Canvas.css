@@ -1,0 +1,36 @@
+.canvas-wrapper {
+  flex: 1;
+  height: 100%;
+  background: var(--bg-base);
+}
+
+/* Override React Flow chrome to match dark retro theme */
+.react-flow__renderer { background: transparent; }
+
+.react-flow__controls {
+  background: var(--bg-elevated) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: var(--radius) !important;
+  box-shadow: none !important;
+}
+.react-flow__controls-button {
+  background: transparent !important;
+  border: none !important;
+  border-bottom: 1px solid var(--border) !important;
+  color: var(--text-muted) !important;
+  fill: var(--text-muted) !important;
+}
+.react-flow__controls-button:last-child { border-bottom: none !important; }
+.react-flow__controls-button:hover {
+  background: var(--bg-hover) !important;
+  fill: var(--accent) !important;
+}
+
+.react-flow__minimap {
+  background: var(--bg-elevated) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: var(--radius) !important;
+}
+
+.react-flow__edge-path { stroke: var(--accent); }
+.react-flow__connectionline { stroke: var(--accent); }
