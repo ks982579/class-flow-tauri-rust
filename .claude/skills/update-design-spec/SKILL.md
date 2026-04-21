@@ -1,4 +1,5 @@
 ---
+name: update-design-spec
 description: Updates docs/DESIGN_SPEC.md to reflect the current state of the application after code changes. Run this after completing a feature or bug fix.
 ---
 
