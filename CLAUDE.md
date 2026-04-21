@@ -83,6 +83,30 @@ docs/                 ← DESIGN_SPEC.md, ARCHITECTURE.md, PLAN.md
 - **Node positions** are frontend-only state (not persisted to the workspace JSON). They live in `store.tsx` and survive in-session.
 - **`connect_methods`** is the atomic Tauri command for wiring workflow steps from the canvas — it find-or-creates `MethodCall` steps and connects them in one call.
 
+## After completing code changes
+
+When a feature, bug fix, or refactor is complete, keep the documentation in sync:
+
+**1. Update `docs/ARCHITECTURE.md`** — launch the dedicated subagent. It reads the key source files directly and makes targeted edits to fix any inaccuracies or missing details:
+
+```
+Agent(subagent_type="update-architecture")
+```
+
+Use this for: new/changed Tauri commands, modified domain types, new crates or dependencies, changed data flow, updated constraints.
+
+**2. Update `docs/DESIGN_SPEC.md`** — invoke the slash command, which runs in the main context window and already knows what changed:
+
+```
+/update-design-spec
+```
+
+Use this for: new UI surfaces, changed interactions, updated theme values, features moved out of "Out of Scope".
+
+Both steps are independent — run whichever applies to the changes just made. For large features, run both.
+
+---
+
 ## Documentation
 
 | File | Purpose |
@@ -90,3 +114,8 @@ docs/                 ← DESIGN_SPEC.md, ARCHITECTURE.md, PLAN.md
 | [`docs/DESIGN_SPEC.md`](docs/DESIGN_SPEC.md) | Product-level spec: entities, UI surfaces, theme |
 | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Technical spec: crate layout, layer rules, data flow, type signatures |
 | [`docs/PLAN.md`](docs/PLAN.md) | Phased execution roadmap (Phase 0–5) with per-phase exit criteria |
+
+| Agent / Command | Purpose |
+|---|---|
+| `.claude/agents/update-architecture.md` | Subagent: reconciles ARCHITECTURE.md with source code |
+| `.claude/commands/update-design-spec.md` | Slash command: updates DESIGN_SPEC.md from context window |

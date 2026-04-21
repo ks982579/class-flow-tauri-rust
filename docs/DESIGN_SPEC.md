@@ -69,16 +69,25 @@ Steps are connected by directed edges on the canvas, forming the flow.
 - Workflow list: all named workflows in the workspace
 - Action buttons: **New Class**, **New Workflow**, **New Namespace**
 
+### Toolbar
+Persistent bar at the top of the window:
+- Workspace name display
+- **Load** — open a `.json` workspace file via native file picker
+- **Save** — save to the current file (opens a picker on first save)
+- **Save As…** — save to a new file
+- **New…** — create a new workspace
+
 ### Main Canvas
 - Class nodes rendered with labeled sections: properties above a divider, methods below
-- Each method and property is a connectable port
-- Workflow edges drawn between method ports (directed arrows)
-- Multiple workflows shown simultaneously, distinguished by color or toggle
+- **Methods** have connectable port handles (left = target, right = source); properties are display-only
+- Workflow edges drawn between method port handles (animated directed arrows)
+- One workflow is active at a time; its edges are shown overlaid on the canvas
 
 ### Panels / Modals
-- **Create / Edit Class**: name, namespace, add/remove/edit properties and methods with full modifier controls
-- **Create / Edit Workflow**: name, description
-- **Step connector**: click a method port to start a workflow edge, click another to complete it
+- **Create / Edit Class**: name, namespace, is-global toggle, add/remove/edit properties and methods with full modifier controls
+- **Create / Edit Workflow**: name only
+- **Step connector**: drag from a method's right-side handle to another method's left-side handle to create a step connection
+- **Workflow panel** (right side, visible when a workflow is active): topologically-sorted step list, remove individual steps, add class mutation steps, delete workflow
 
 ---
 
@@ -86,12 +95,12 @@ Steps are connected by directed edges on the canvas, forming the flow.
 
 **Dark retro** — inspired by phosphor monitors and amber terminal displays.
 
-- Backgrounds: near-black (`#0d0d0d` range), dark charcoal panels
-- Primary accent: phosphor green (`#39ff14` toned down) or amber (`#ffb300` muted)
-- Text: soft off-white, never pure `#ffffff`
-- Borders: dim, low-contrast; subtle glow on active elements
+- Backgrounds: near-black (`#0c0c0c` base, `#121212` panels, `#1a1a1a` elevated)
+- Primary accent: muted phosphor green (`#8aab48`); secondary amber (`#c09030`)
+- Text: warm off-white (`#dedad0`); muted (`#7a7468`); dim (`#4a4640`)
+- Borders: `#262626` — low-contrast, subtle
 - No bright whites, no saturated neons, no high-contrast gradients
-- Font: monospace for class/method names; legible at small sizes
+- Font: monospace (`JetBrains Mono` → `Fira Code` → `Consolas` fallback chain)
 
 ---
 

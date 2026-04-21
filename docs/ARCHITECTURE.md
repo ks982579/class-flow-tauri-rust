@@ -77,41 +77,65 @@ All types derive `serde::Serialize + Deserialize` and `Clone`. IDs are `uuid::Uu
 
 ### `PlatformBridge` trait
 
-Defined in `platform`, implemented in terms of `core`. Signature mirrors the set of Tauri commands:
+Defined in `platform/src/bridge.rs`. The trait is **pure** — every method takes `&mut Workspace` and returns a result. No I/O, no async, no `State` parameters. This keeps the business logic testable and framework-independent.
 
 ```rust
 trait PlatformBridge {
-    fn load_workspace(&self, path: &Path) -> Result<Workspace>;
-    fn save_workspace(&self, path: &Path, workspace: &Workspace) -> Result<()>;
-    fn get_workspace(&self) -> Result<Workspace>;
-    // ... class CRUD, workflow CRUD, step CRUD
+    fn add_namespace(&self, ws: &mut Workspace, name: String) -> BridgeResult<Namespace>;
+    fn add_class(&self, ws: &mut Workspace, namespace_id: Uuid, name: String, is_global: bool) -> BridgeResult<Class>;
+    fn connect_methods(&self, ws: &mut Workspace, workflow_id: Uuid,
+                       from_class_id: Uuid, from_method_id: Uuid,
+                       to_class_id: Uuid,   to_method_id: Uuid) -> BridgeResult<()>;
+    // ... full namespace / class / property / method / workflow / step CRUD
+}
+```
+
+`connect_methods` is the key compound operation: it find-or-creates a `MethodCall` step for each endpoint (reusing an existing step when the same class+method is already in the workflow), then connects them with a `StepEdge`.
+
+### `AppState`
+
+Defined in `platform/src/state.rs`. Managed by Tauri's `.manage()` call:
+
+```rust
+pub struct AppState {
+    pub workspace: Mutex<Option<Workspace>>,
+    pub save_path: Mutex<Option<PathBuf>>,
 }
 ```
 
 ### Tauri commands
 
-All `#[tauri::command]` functions live here. They:
-1. Deserialize inputs from the webview
-2. Delegate to the `PlatformBridge` implementation
-3. Serialize `core` types back to the webview
+All `#[tauri::command]` functions live in `platform/src/commands.rs`. Each mutating command:
+1. Locks `AppState::workspace`
+2. Calls the appropriate `PlatformBridge` method on the `&mut Workspace`
+3. Clones the updated workspace, drops the lock
+4. Calls `auto_save` (writes JSON to `save_path` if one is set)
+5. Returns the cloned workspace — **every mutating command returns the full `Workspace`** so the frontend replaces state in one step
+
+File I/O (load/save) is handled directly in the command layer, not through the bridge trait.
 
 ### Persistence
 
-Workspace saved as JSON (`serde_json`) to a user-chosen file path. `platform` owns the file I/O; `core` only knows about the in-memory model.
+Workspace saved as pretty-printed JSON (`serde_json`) to a user-chosen path. The path is stored in `AppState::save_path` and reused for auto-save on every subsequent mutation.
 
 ---
 
 ## `ui` (Frontend)
 
-**Stack**: React + TypeScript inside a Tauri webview. Framework/tooling TBD (Vite is the Tauri default).
+**Stack**: React 19 + TypeScript, bundled with Vite. Runs inside the Tauri webview.
 
-**Canvas library**: TBD — React Flow is the leading candidate for rendering class nodes and workflow edges as a directed graph.
+**Canvas library**: `@xyflow/react` v12 (React Flow). Class nodes are custom node components; workflow step connections are React Flow edges derived from the active workflow's `steps` + `edges` arrays.
 
-**Communication**: `@tauri-apps/api`'s `invoke` function only. The UI never calls Rust directly — it calls named Tauri commands exposed by `platform`.
+**Communication**: `@tauri-apps/api/core`'s `invoke` function only, via a typed wrapper in `ui/src/api.ts`. The UI never imports `tauri` outside of that file.
 
-**State**: Local React state / context for UI interaction state; workspace data fetched from / pushed to the Rust backend via commands. No external state management library needed for v1.
+**File dialogs**: `@tauri-apps/plugin-dialog` (`tauri-plugin-dialog` on the Rust side) provides native OS open/save pickers for workspace files.
 
-**Theme**: CSS custom properties for all palette values. A single `theme.css` file defines the dark retro palette; components reference variables only (no hard-coded colors in component CSS).
+**State**: `ui/src/store.tsx` — a React context wrapping three pieces of state:
+- `workspace: Workspace | null` — the authoritative in-memory workspace, always sourced from the Rust backend
+- `positions: Record<string, {x,y}>` — per-class canvas coordinates (frontend-only, not persisted)
+- `activeWorkflowId: string | null` — which workflow's edges are currently overlaid on the canvas
+
+**Theme**: `ui/src/theme.css` defines all palette values as CSS custom properties. No component stylesheet hardcodes a colour.
 
 ---
 
@@ -127,13 +151,15 @@ Initial target: C# (`.cs`). Parsing strategy TBD (regex-based outline extraction
 
 ```
 UI form submit
-  → invoke("create_class", { namespace_id, name, ... })
-  → platform: #[tauri::command] create_class(...)
-  → platform: bridge.create_class(namespace_id, class_def)
-  → core: workspace.namespace_mut(id).add_class(class_def)
-  → platform: save_workspace(path, &workspace)   // auto-save
-  → return Ok(updated_workspace)
-  → UI updates canvas with new class node
+  → invoke("add_class", { namespaceId, name, isGlobal })
+  → platform: #[tauri::command] add_class(namespace_id, name, is_global, state)
+  → lock AppState::workspace
+  → CoreBridge::add_class(&mut workspace, namespace_id, name, is_global)
+  → core: namespace.add_class(Class::new(...))
+  → clone workspace, drop lock
+  → auto_save writes JSON to save_path (if set)
+  → return Ok(workspace_clone)
+  → UI: setWorkspace(ws) — canvas re-renders with new class node
 ```
 
 ---
@@ -141,6 +167,7 @@ UI form submit
 ## Key Constraints
 
 - `core` must compile with no Tauri, no tokio, no file system access.
-- All `#[tauri::command]` annotations exist only in `platform/` or `src-tauri/`.
-- Theme palette is defined once in CSS variables — never duplicated in component styles.
-- IDs are stable across save/load (UUIDs, not array indices).
+- All `#[tauri::command]` annotations live only in `platform/src/commands.rs`; they are registered in `src-tauri/src/lib.rs`.
+- Theme palette is defined once in `ui/src/theme.css` as CSS custom properties — never hardcoded in component stylesheets.
+- IDs are stable across save/load (UUID v4 strings, not array indices).
+- **serde camelCase on enums**: `#[serde(rename_all = "camelCase")]` at the enum level renames the variant *tag value* only. To rename fields *inside* a struct variant, each variant also needs its own `#[serde(rename_all = "camelCase")]` attribute. `StepKind` demonstrates this — both the enum and each variant carry the attribute.
