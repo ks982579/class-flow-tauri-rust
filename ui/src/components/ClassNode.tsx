@@ -16,21 +16,11 @@ export type ClassNodeType = Node<ClassNodeData, 'classNode'>;
 
 export default function ClassNode({ data }: NodeProps<ClassNodeType>) {
   const { cls, namespace, onEdit } = data as ClassNodeData;
-  const { workspace, setWorkspace } = useStore();
-  const [expandedMethods, setExpandedMethods] = useState<Set<string>>(new Set());
+  const { workspace, setWorkspace, expandedMethods, toggleMethodExpansion } = useStore();
   const [editingStep, setEditingStep] = useState<string | null>(null);
   const [editText, setEditText] = useState('');
   const [addingStepForMethod, setAddingStepForMethod] = useState<string | null>(null);
   const [newStepText, setNewStepText] = useState('');
-
-  function toggleMethod(methodId: string) {
-    setExpandedMethods(prev => {
-      const next = new Set(prev);
-      if (next.has(methodId)) next.delete(methodId);
-      else next.add(methodId);
-      return next;
-    });
-  }
 
   function connectionLabel(classId: string, methodId: string): string {
     if (!workspace) return '→ ?';
@@ -111,7 +101,7 @@ export default function ClassNode({ data }: NodeProps<ClassNodeType>) {
               <div key={method.id} className="method-group">
                 <div
                   className="member-row method-row"
-                  onClick={() => toggleMethod(method.id)}
+                  onClick={() => toggleMethodExpansion(method.id)}
                   style={{ cursor: 'pointer' }}
                 >
                   <Handle

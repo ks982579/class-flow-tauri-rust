@@ -25,7 +25,7 @@ interface Props {
 }
 
 export default function Canvas({ onEditClass }: Props) {
-  const { workspace, positions, activeWorkflowId, setWorkspace, setPosition } = useStore();
+  const { workspace, positions, activeWorkflowId, expandedMethods, setWorkspace, setPosition } = useStore();
 
   // ── Nodes ──────────────────────────────────────────────────────────────────
 
@@ -68,11 +68,12 @@ export default function Canvas({ onEditClass }: Props) {
       });
     })();
 
+    // Only show delegation edges for methods that are currently expanded in their ClassNode.
     const stepConnectionEdges: Edge[] = (workspace?.namespaces ?? []).flatMap(ns =>
       ns.classes.flatMap(cls =>
         cls.methods.flatMap(method =>
           method.steps
-            .filter(step => step.connection != null)
+            .filter(step => step.connection != null && expandedMethods.has(method.id))
             .map(step => ({
               id: `step-conn-${step.id}`,
               source:       cls.id,
@@ -88,7 +89,7 @@ export default function Canvas({ onEditClass }: Props) {
     );
 
     return [...workflowEdges, ...stepConnectionEdges];
-  }, [workspace, activeWorkflowId]);
+  }, [workspace, activeWorkflowId, expandedMethods]);
 
   // ── Handlers ───────────────────────────────────────────────────────────────
 

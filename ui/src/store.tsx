@@ -7,9 +7,11 @@ interface StoreValue {
   workspace: Workspace | null;
   positions: Record<string, NodePosition>;
   activeWorkflowId: string | null;
+  expandedMethods: Set<string>;
   setWorkspace: (ws: Workspace) => void;
   setPosition: (classId: string, pos: NodePosition) => void;
   setActiveWorkflowId: (id: string | null) => void;
+  toggleMethodExpansion: (methodId: string) => void;
 }
 
 const Store = createContext<StoreValue | null>(null);
@@ -24,6 +26,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [workspace, setWorkspaceRaw] = useState<Workspace | null>(null);
   const [positions, setPositions] = useState<Record<string, NodePosition>>({});
   const [activeWorkflowId, setActiveWorkflowId] = useState<string | null>(null);
+  const [expandedMethods, setExpandedMethods] = useState<Set<string>>(new Set());
 
   const setWorkspace = useCallback((ws: Workspace) => {
     setWorkspaceRaw(_prev => {
@@ -52,8 +55,17 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     setPositions(prev => ({ ...prev, [classId]: pos }));
   }, []);
 
+  const toggleMethodExpansion = useCallback((methodId: string) => {
+    setExpandedMethods(prev => {
+      const next = new Set(prev);
+      if (next.has(methodId)) next.delete(methodId);
+      else next.add(methodId);
+      return next;
+    });
+  }, []);
+
   return (
-    <Store.Provider value={{ workspace, positions, activeWorkflowId, setWorkspace, setPosition, setActiveWorkflowId }}>
+    <Store.Provider value={{ workspace, positions, activeWorkflowId, expandedMethods, setWorkspace, setPosition, setActiveWorkflowId, toggleMethodExpansion }}>
       {children}
     </Store.Provider>
   );
