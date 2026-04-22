@@ -340,3 +340,93 @@ pub fn connect_methods(
     auto_save(&state, &ws_clone).map_err(String::from)?;
     Ok(ws_clone)
 }
+
+// ── Method steps ──────────────────────────────────────────────────────────────
+
+#[tauri::command]
+pub fn add_method_step(
+    class_id: Uuid,
+    method_id: Uuid,
+    statement: String,
+    state: State<AppState>,
+) -> Result<Workspace, String> {
+    let bridge = CoreBridge;
+    let mut guard = state.workspace.lock().unwrap();
+    let ws = guard.as_mut().ok_or(PlatformError::NoWorkspace)?;
+    bridge.add_method_step(ws, class_id, method_id, statement)?;
+    let ws_clone = ws.clone();
+    drop(guard);
+    auto_save(&state, &ws_clone).map_err(String::from)?;
+    Ok(ws_clone)
+}
+
+#[tauri::command]
+pub fn update_method_step(
+    class_id: Uuid,
+    method_id: Uuid,
+    step_id: Uuid,
+    statement: String,
+    state: State<AppState>,
+) -> Result<Workspace, String> {
+    let bridge = CoreBridge;
+    let mut guard = state.workspace.lock().unwrap();
+    let ws = guard.as_mut().ok_or(PlatformError::NoWorkspace)?;
+    bridge.update_method_step(ws, class_id, method_id, step_id, statement)?;
+    let ws_clone = ws.clone();
+    drop(guard);
+    auto_save(&state, &ws_clone).map_err(String::from)?;
+    Ok(ws_clone)
+}
+
+#[tauri::command]
+pub fn remove_method_step(
+    class_id: Uuid,
+    method_id: Uuid,
+    step_id: Uuid,
+    state: State<AppState>,
+) -> Result<Workspace, String> {
+    let bridge = CoreBridge;
+    let mut guard = state.workspace.lock().unwrap();
+    let ws = guard.as_mut().ok_or(PlatformError::NoWorkspace)?;
+    bridge.remove_method_step(ws, class_id, method_id, step_id)?;
+    let ws_clone = ws.clone();
+    drop(guard);
+    auto_save(&state, &ws_clone).map_err(String::from)?;
+    Ok(ws_clone)
+}
+
+#[tauri::command]
+pub fn set_method_step_connection(
+    class_id: Uuid,
+    method_id: Uuid,
+    step_id: Uuid,
+    target_class_id: Uuid,
+    target_method_id: Uuid,
+    state: State<AppState>,
+) -> Result<Workspace, String> {
+    let bridge = CoreBridge;
+    let mut guard = state.workspace.lock().unwrap();
+    let ws = guard.as_mut().ok_or(PlatformError::NoWorkspace)?;
+    bridge.set_method_step_connection(ws, class_id, method_id, step_id, target_class_id, target_method_id)?;
+    let ws_clone = ws.clone();
+    drop(guard);
+    auto_save(&state, &ws_clone).map_err(String::from)?;
+    Ok(ws_clone)
+}
+
+#[tauri::command]
+pub fn clear_method_step_connection(
+    class_id: Uuid,
+    method_id: Uuid,
+    step_id: Uuid,
+    state: State<AppState>,
+) -> Result<Workspace, String> {
+    let bridge = CoreBridge;
+    let mut guard = state.workspace.lock().unwrap();
+    let ws = guard.as_mut().ok_or(PlatformError::NoWorkspace)?;
+    bridge.clear_method_step_connection(ws, class_id, method_id, step_id)?;
+    let ws_clone = ws.clone();
+    drop(guard);
+    auto_save(&state, &ws_clone).map_err(String::from)?;
+    Ok(ws_clone)
+}

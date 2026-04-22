@@ -1,0 +1,84 @@
+{
+  "id": "952af33f-6a7c-42a4-991e-f9763ef9f85e",
+  "name": "blob",
+  "namespaces": [
+    {
+      "id": "3cd59221-0c78-4d21-9302-5488437163cc",
+      "name": "name.space",
+      "classes": [
+        {
+          "id": "9ec2b538-5d31-4858-8014-93295e9b8a88",
+          "name": "Thing1",
+          "namespaceId": "3cd59221-0c78-4d21-9302-5488437163cc",
+          "properties": [],
+          "methods": [
+            {
+              "id": "7be04f4a-3061-46e9-afb5-b708f844d57b",
+              "name": "DoThing1",
+              "parameters": [],
+              "returnType": "void",
+              "access": "public",
+              "isStatic": false,
+              "steps": [
+                {
+                  "id": "09d5c5b8-5eac-4ed0-b5f8-715495d76974",
+                  "statement": "Get Help",
+                  "connection": {
+                    "classId": "3e58e5e8-aea1-472b-a8c9-5ecc903a46aa",
+                    "methodId": "8bcc6ed9-0266-4d44-983c-a0c4754e94a6"
+                  }
+                }
+              ]
+            }
+          ],
+          "nestedClasses": [],
+          "isGlobal": false
+        },
+        {
+          "id": "3e58e5e8-aea1-472b-a8c9-5ecc903a46aa",
+          "name": "Thing2",
+          "namespaceId": "3cd59221-0c78-4d21-9302-5488437163cc",
+          "properties": [],
+          "methods": [
+            {
+              "id": "8bcc6ed9-0266-4d44-983c-a0c4754e94a6",
+              "name": "HelpThing1",
+              "parameters": [],
+              "returnType": "bool",
+              "access": "public",
+              "isStatic": false,
+              "steps": []
+            }
+          ],
+          "nestedClasses": [],
+          "isGlobal": false
+        }
+      ]
+    }
+  ],
+  "workflows": [
+    {
+      "id": "59f4d274-4c54-4a1e-8938-3abf84a6b42e",
+      "name": "do things",
+      "steps": [
+        {
+          "id": "2f2b52cf-26c7-4102-aef2-87bd5eb570ff",
+          "kind": {
+            "kind": "classMutation",
+            "classId": "9ec2b538-5d31-4858-8014-93295e9b8a88",
+            "action": "create"
+          }
+        },
+        {
+          "id": "661b9f26-8c1f-4601-8d4a-59da3ff362b5",
+          "kind": {
+            "kind": "classMutation",
+            "classId": "3e58e5e8-aea1-472b-a8c9-5ecc903a46aa",
+            "action": "create"
+          }
+        }
+      ],
+      "edges": []
+    }
+  ]
+}

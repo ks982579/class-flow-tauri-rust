@@ -48,7 +48,18 @@ parameters: Vec<Parameter>   // name + type pairs
 return_type: Option<String>
 access: AccessModifier
 static: bool
+steps: Vec<MethodStep>
 ```
+
+### MethodStep
+A flowchart-style step inside a method. Represents a single unit of logic or delegation within the method body.
+
+```
+statement: String                    // free-text description, e.g. "find correct id"
+connection: Option<MethodStepTarget> // optional delegation to another class method
+```
+
+When a connection is set, a dashed arrow is drawn on the canvas from the step to the target method, indicating "this logic is handled by that method."
 
 ### Workflow
 A named, directed graph of **WorkflowSteps**. Represents a sequence (or branching sequence) of operations across class methods. Multiple workflows can exist in a workspace simultaneously and are listed in the sidebar.
@@ -80,13 +91,16 @@ Persistent bar at the top of the window:
 ### Main Canvas
 - Class nodes rendered with labeled sections: properties above a divider, methods below
 - **Methods** have connectable port handles (left = target, right = source); properties are display-only
-- Workflow edges drawn between method port handles (animated directed arrows)
-- One workflow is active at a time; its edges are shown overlaid on the canvas
+- Method rows are expandable (click to toggle): expanded rows show the method's step list
+- Workflow edges drawn between method port handles (animated, accent-colored arrows); one workflow is active at a time
+- **Method step delegation edges** are always visible as dashed, muted-color arrows — drawn from each step's source handle to its connected method's target handle
 
 ### Panels / Modals
 - **Create / Edit Class**: name, namespace, is-global toggle, add/remove/edit properties and methods with full modifier controls
 - **Create / Edit Workflow**: name only
-- **Step connector**: drag from a method's right-side handle to another method's left-side handle to create a step connection
+- **Workflow step connector**: drag from a method's right-side handle to another method's left-side handle to create a workflow step connection (only available when a workflow is active)
+- **Method step editing** (inline in the class node): expand a method row to add/edit/delete steps; each step has a free-text statement field; click a step's statement to edit it in-place
+- **Method step delegation connector**: drag from a step's right-side handle (smaller, amber on hover) to any method's left-side handle to set a delegation connection; click the connection label on the step row to clear it
 - **Workflow panel** (right side, visible when a workflow is active): topologically-sorted step list, remove individual steps, add class mutation steps, delete workflow
 
 ---

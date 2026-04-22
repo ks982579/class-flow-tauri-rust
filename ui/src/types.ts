@@ -15,6 +15,17 @@ export interface Property {
   isStatic: boolean;
 }
 
+export interface MethodStepConnection {
+  classId: string;
+  methodId: string;
+}
+
+export interface MethodStep {
+  id: string;
+  statement: string;
+  connection: MethodStepConnection | null;
+}
+
 export interface Method {
   id: string;
   name: string;
@@ -22,6 +33,7 @@ export interface Method {
   returnType: string | null;
   access: AccessModifier;
   isStatic: boolean;
+  steps: MethodStep[];
 }
 
 export interface Class {

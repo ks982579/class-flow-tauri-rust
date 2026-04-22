@@ -1,4 +1,4 @@
-use core::{Class, Method, Namespace, Property, StepKind, Workflow, WorkflowStep, Workspace};
+use core::{Class, Method, MethodStep, MethodStepConnection, Namespace, Property, StepKind, Workflow, WorkflowStep, Workspace};
 use uuid::Uuid;
 
 use crate::error::PlatformError;
@@ -87,6 +87,45 @@ pub trait PlatformBridge {
         ws: &mut Workspace,
         class_id: Uuid,
         method_id: Uuid,
+    ) -> BridgeResult<()>;
+
+    fn add_method_step(
+        &self,
+        ws: &mut Workspace,
+        class_id: Uuid,
+        method_id: Uuid,
+        statement: String,
+    ) -> BridgeResult<MethodStep>;
+    fn update_method_step(
+        &self,
+        ws: &mut Workspace,
+        class_id: Uuid,
+        method_id: Uuid,
+        step_id: Uuid,
+        statement: String,
+    ) -> BridgeResult<()>;
+    fn remove_method_step(
+        &self,
+        ws: &mut Workspace,
+        class_id: Uuid,
+        method_id: Uuid,
+        step_id: Uuid,
+    ) -> BridgeResult<()>;
+    fn set_method_step_connection(
+        &self,
+        ws: &mut Workspace,
+        class_id: Uuid,
+        method_id: Uuid,
+        step_id: Uuid,
+        target_class_id: Uuid,
+        target_method_id: Uuid,
+    ) -> BridgeResult<()>;
+    fn clear_method_step_connection(
+        &self,
+        ws: &mut Workspace,
+        class_id: Uuid,
+        method_id: Uuid,
+        step_id: Uuid,
     ) -> BridgeResult<()>;
 }
 
@@ -304,6 +343,81 @@ impl PlatformBridge for CoreBridge {
         method_id: Uuid,
     ) -> BridgeResult<()> {
         Self::find_class_mut(ws, class_id)?.remove_method(method_id);
+        Ok(())
+    }
+
+    fn add_method_step(
+        &self,
+        ws: &mut Workspace,
+        class_id: Uuid,
+        method_id: Uuid,
+        statement: String,
+    ) -> BridgeResult<MethodStep> {
+        let step = ws
+            .find_method_mut(class_id, method_id)
+            .ok_or_else(|| PlatformError::NotFound(format!("method {method_id}")))?
+            .add_step(statement);
+        Ok(step)
+    }
+
+    fn update_method_step(
+        &self,
+        ws: &mut Workspace,
+        class_id: Uuid,
+        method_id: Uuid,
+        step_id: Uuid,
+        statement: String,
+    ) -> BridgeResult<()> {
+        ws.find_method_mut(class_id, method_id)
+            .ok_or_else(|| PlatformError::NotFound(format!("method {method_id}")))?
+            .step_mut(step_id)
+            .ok_or_else(|| PlatformError::NotFound(format!("step {step_id}")))?
+            .statement = statement;
+        Ok(())
+    }
+
+    fn remove_method_step(
+        &self,
+        ws: &mut Workspace,
+        class_id: Uuid,
+        method_id: Uuid,
+        step_id: Uuid,
+    ) -> BridgeResult<()> {
+        ws.find_method_mut(class_id, method_id)
+            .ok_or_else(|| PlatformError::NotFound(format!("method {method_id}")))?
+            .remove_step(step_id);
+        Ok(())
+    }
+
+    fn set_method_step_connection(
+        &self,
+        ws: &mut Workspace,
+        class_id: Uuid,
+        method_id: Uuid,
+        step_id: Uuid,
+        target_class_id: Uuid,
+        target_method_id: Uuid,
+    ) -> BridgeResult<()> {
+        ws.find_method_mut(class_id, method_id)
+            .ok_or_else(|| PlatformError::NotFound(format!("method {method_id}")))?
+            .step_mut(step_id)
+            .ok_or_else(|| PlatformError::NotFound(format!("step {step_id}")))?
+            .connection = Some(MethodStepConnection { class_id: target_class_id, method_id: target_method_id });
+        Ok(())
+    }
+
+    fn clear_method_step_connection(
+        &self,
+        ws: &mut Workspace,
+        class_id: Uuid,
+        method_id: Uuid,
+        step_id: Uuid,
+    ) -> BridgeResult<()> {
+        ws.find_method_mut(class_id, method_id)
+            .ok_or_else(|| PlatformError::NotFound(format!("method {method_id}")))?
+            .step_mut(step_id)
+            .ok_or_else(|| PlatformError::NotFound(format!("step {step_id}")))?
+            .connection = None;
         Ok(())
     }
 }

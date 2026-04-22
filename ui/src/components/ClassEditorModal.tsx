@@ -14,7 +14,7 @@ function newProp(): Property {
   return { id: crypto.randomUUID(), name: '', typeAnnotation: '', access: 'public', immutable: false, isStatic: false };
 }
 function newMethod(): Method {
-  return { id: crypto.randomUUID(), name: '', parameters: [], returnType: null, access: 'public', isStatic: false };
+  return { id: crypto.randomUUID(), name: '', parameters: [], returnType: null, access: 'public', isStatic: false, steps: [] };
 }
 function newParam(): Parameter {
   return { name: '', typeAnnotation: '' };

@@ -1,0 +1,169 @@
+{
+  "id": "4e08c3ce-a6f8-4e83-9835-08ad764f338c",
+  "name": "food",
+  "namespaces": [
+    {
+      "id": "9d19be34-8656-4d7f-9736-f59a769fa2ee",
+      "name": "home.kitchen",
+      "classes": [
+        {
+          "id": "74d82777-d3e0-4834-a2f7-626c135db2d4",
+          "name": "Stove",
+          "namespaceId": "9d19be34-8656-4d7f-9736-f59a769fa2ee",
+          "properties": [],
+          "methods": [
+            {
+              "id": "9e23a3e4-4d22-4298-8c5d-853468b37b1e",
+              "name": "CookRecipe",
+              "parameters": [
+                {
+                  "name": "recipe",
+                  "typeAnnotation": "Recipe"
+                },
+                {
+                  "name": "ingredients",
+                  "typeAnnotation": "List<Food>"
+                }
+              ],
+              "returnType": "Meal",
+              "access": "public",
+              "isStatic": false,
+              "steps": []
+            }
+          ],
+          "nestedClasses": [],
+          "isGlobal": false
+        },
+        {
+          "id": "fc11c103-1b5e-4d69-98bb-a888c9710e1c",
+          "name": "Fridge",
+          "namespaceId": "9d19be34-8656-4d7f-9736-f59a769fa2ee",
+          "properties": [
+            {
+              "id": "e1403a0e-ff39-4c28-90b3-aeb0a54ca8de",
+              "name": "Contents",
+              "typeAnnotation": "List<Food>",
+              "access": "public",
+              "immutable": false,
+              "isStatic": false
+            }
+          ],
+          "methods": [
+            {
+              "id": "51a850d7-9188-4d8e-aca2-8f9e9238a557",
+              "name": "GetIngredients",
+              "parameters": [
+                {
+                  "name": "recipe",
+                  "typeAnnotation": "Recipe"
+                }
+              ],
+              "returnType": "List<Food>",
+              "access": "public",
+              "isStatic": false,
+              "steps": [
+                {
+                  "id": "17c9f604-7f46-4e65-913b-084bf40e419d",
+                  "statement": "Chop",
+                  "connection": null
+                }
+              ]
+            }
+          ],
+          "nestedClasses": [],
+          "isGlobal": false
+        },
+        {
+          "id": "0b376200-baa9-4b99-9e09-5b898000d6a6",
+          "name": "Table",
+          "namespaceId": "9d19be34-8656-4d7f-9736-f59a769fa2ee",
+          "properties": [],
+          "methods": [
+            {
+              "id": "50a0c2cf-1489-47d1-9b4a-ea91445d531a",
+              "name": "EatMeal",
+              "parameters": [
+                {
+                  "name": "meal",
+                  "typeAnnotation": "Meal"
+                }
+              ],
+              "returnType": "boolean",
+              "access": "public",
+              "isStatic": false,
+              "steps": []
+            }
+          ],
+          "nestedClasses": [],
+          "isGlobal": false
+        }
+      ]
+    }
+  ],
+  "workflows": [
+    {
+      "id": "aefa18f3-197e-4460-809c-63cacfd028c8",
+      "name": "Cook Dinner",
+      "steps": [
+        {
+          "id": "58901326-0859-4a7f-af8b-2ad332af8e88",
+          "kind": {
+            "kind": "classMutation",
+            "classId": "fc11c103-1b5e-4d69-98bb-a888c9710e1c",
+            "action": "create"
+          }
+        },
+        {
+          "id": "5046e192-0ec4-468e-9286-81e8ba526395",
+          "kind": {
+            "kind": "classMutation",
+            "classId": "74d82777-d3e0-4834-a2f7-626c135db2d4",
+            "action": "create"
+          }
+        },
+        {
+          "id": "e22ebf15-5010-4661-8c99-0c427a4b6bd9",
+          "kind": {
+            "kind": "classMutation",
+            "classId": "0b376200-baa9-4b99-9e09-5b898000d6a6",
+            "action": "create"
+          }
+        },
+        {
+          "id": "2c6cb0ed-7f4c-409e-9a9d-f67a3933039e",
+          "kind": {
+            "kind": "methodCall",
+            "classId": "fc11c103-1b5e-4d69-98bb-a888c9710e1c",
+            "methodId": "51a850d7-9188-4d8e-aca2-8f9e9238a557"
+          }
+        },
+        {
+          "id": "4fe98334-8f9f-496a-ae66-5ea92fbff675",
+          "kind": {
+            "kind": "methodCall",
+            "classId": "74d82777-d3e0-4834-a2f7-626c135db2d4",
+            "methodId": "9e23a3e4-4d22-4298-8c5d-853468b37b1e"
+          }
+        },
+        {
+          "id": "686b434b-a170-45c2-996c-7af264f9d45b",
+          "kind": {
+            "kind": "methodCall",
+            "classId": "0b376200-baa9-4b99-9e09-5b898000d6a6",
+            "methodId": "50a0c2cf-1489-47d1-9b4a-ea91445d531a"
+          }
+        }
+      ],
+      "edges": [
+        {
+          "fromStepId": "2c6cb0ed-7f4c-409e-9a9d-f67a3933039e",
+          "toStepId": "4fe98334-8f9f-496a-ae66-5ea92fbff675"
+        },
+        {
+          "fromStepId": "4fe98334-8f9f-496a-ae66-5ea92fbff675",
+          "toStepId": "686b434b-a170-45c2-996c-7af264f9d45b"
+        }
+      ]
+    }
+  ]
+}

@@ -42,32 +42,52 @@ export default function Canvas({ onEditClass }: Props) {
     );
   }, [workspace, positions, onEditClass]);
 
-  // ── Edges — built from the active workflow's steps + edges ─────────────────
+  // ── Edges ──────────────────────────────────────────────────────────────────
 
   const edges: Edge[] = useMemo(() => {
-    if (!workspace || !activeWorkflowId) return [];
-    const wf = workspace.workflows.find(w => w.id === activeWorkflowId);
-    if (!wf) return [];
+    const workflowEdges: Edge[] = (() => {
+      if (!workspace || !activeWorkflowId) return [];
+      const wf = workspace.workflows.find(w => w.id === activeWorkflowId);
+      if (!wf) return [];
+      const stepMap = new Map(wf.steps.map(s => [s.id, s]));
+      return wf.edges.flatMap(e => {
+        const from = stepMap.get(e.fromStepId);
+        const to   = stepMap.get(e.toStepId);
+        if (!from || !to) return [];
+        if (from.kind.kind !== 'methodCall' || to.kind.kind !== 'methodCall') return [];
+        return [{
+          id: `${e.fromStepId}-${e.toStepId}`,
+          source:       from.kind.classId,
+          sourceHandle: `source-${from.kind.methodId}`,
+          target:       to.kind.classId,
+          targetHandle: `target-${to.kind.methodId}`,
+          style: { stroke: 'var(--accent)', strokeWidth: 2 },
+          markerEnd: { type: MarkerType.ArrowClosed, color: 'var(--accent)' },
+          animated: true,
+        }];
+      });
+    })();
 
-    const stepMap = new Map(wf.steps.map(s => [s.id, s]));
+    const stepConnectionEdges: Edge[] = (workspace?.namespaces ?? []).flatMap(ns =>
+      ns.classes.flatMap(cls =>
+        cls.methods.flatMap(method =>
+          method.steps
+            .filter(step => step.connection != null)
+            .map(step => ({
+              id: `step-conn-${step.id}`,
+              source:       cls.id,
+              sourceHandle: `step-source|${method.id}|${step.id}`,
+              target:       step.connection!.classId,
+              targetHandle: `target-${step.connection!.methodId}`,
+              style: { stroke: 'var(--text-muted)', strokeDasharray: '4 3', strokeWidth: 1 },
+              markerEnd: { type: MarkerType.ArrowClosed, color: 'var(--text-muted)' },
+              animated: false,
+            }))
+        )
+      )
+    );
 
-    return wf.edges.flatMap(e => {
-      const from = stepMap.get(e.fromStepId);
-      const to   = stepMap.get(e.toStepId);
-      if (!from || !to) return [];
-      if (from.kind.kind !== 'methodCall' || to.kind.kind !== 'methodCall') return [];
-
-      return [{
-        id: `${e.fromStepId}-${e.toStepId}`,
-        source:       from.kind.classId,
-        sourceHandle: `source-${from.kind.methodId}`,
-        target:       to.kind.classId,
-        targetHandle: `target-${to.kind.methodId}`,
-        style: { stroke: 'var(--accent)', strokeWidth: 2 },
-        markerEnd: { type: MarkerType.ArrowClosed, color: 'var(--accent)' },
-        animated: true,
-      }];
-    });
+    return [...workflowEdges, ...stepConnectionEdges];
   }, [workspace, activeWorkflowId]);
 
   // ── Handlers ───────────────────────────────────────────────────────────────
@@ -81,13 +101,29 @@ export default function Canvas({ onEditClass }: Props) {
   }, [setPosition]);
 
   const onConnect = useCallback(async (connection: Connection) => {
+    if (!connection.source || !connection.target || !connection.sourceHandle || !connection.targetHandle) return;
+
+    if (connection.sourceHandle.startsWith('step-source|')) {
+      // Step delegation: step-source|{methodId}|{stepId} → target-{methodId}
+      const [, methodId, stepId] = connection.sourceHandle.split('|');
+      const targetMethodId = connection.targetHandle.replace('target-', '');
+      if (!methodId || !stepId || !targetMethodId) return;
+      try {
+        const ws = await api.setMethodStepConnection(
+          connection.source, methodId, stepId,
+          connection.target, targetMethodId,
+        );
+        setWorkspace(ws);
+      } catch (e) {
+        console.error('set_method_step_connection failed:', e);
+      }
+      return;
+    }
+
+    // Workflow connection: source-{methodId} → target-{methodId}
     if (!activeWorkflowId) return;
-
-    // Handle IDs are formatted as "source-{methodId}" / "target-{methodId}"
-    const fromMethodId = connection.sourceHandle?.replace('source-', '');
-    const toMethodId   = connection.targetHandle?.replace('target-', '');
-    if (!connection.source || !connection.target || !fromMethodId || !toMethodId) return;
-
+    const fromMethodId = connection.sourceHandle.replace('source-', '');
+    const toMethodId   = connection.targetHandle.replace('target-', '');
     try {
       const ws = await api.connectMethods(
         activeWorkflowId,

@@ -52,6 +52,21 @@ impl Property {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+pub struct MethodStepConnection {
+    pub class_id: Uuid,
+    pub method_id: Uuid,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct MethodStep {
+    pub id: Uuid,
+    pub statement: String,
+    pub connection: Option<MethodStepConnection>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Method {
     pub id: Uuid,
     pub name: String,
@@ -59,6 +74,8 @@ pub struct Method {
     pub return_type: Option<String>,
     pub access: AccessModifier,
     pub is_static: bool,
+    #[serde(default)]
+    pub steps: Vec<MethodStep>,
 }
 
 impl Method {
@@ -70,7 +87,26 @@ impl Method {
             return_type: None,
             access: AccessModifier::default(),
             is_static: false,
+            steps: Vec::new(),
         }
+    }
+
+    pub fn add_step(&mut self, statement: impl Into<String>) -> MethodStep {
+        let step = MethodStep {
+            id: Uuid::new_v4(),
+            statement: statement.into(),
+            connection: None,
+        };
+        self.steps.push(step.clone());
+        step
+    }
+
+    pub fn remove_step(&mut self, id: Uuid) {
+        self.steps.retain(|s| s.id != id);
+    }
+
+    pub fn step_mut(&mut self, id: Uuid) -> Option<&mut MethodStep> {
+        self.steps.iter_mut().find(|s| s.id == id)
     }
 }
 
@@ -277,8 +313,19 @@ impl Workspace {
         self.workflows.iter_mut().find(|w| w.id == id)
     }
 
-    /// Remove a class from whichever namespace owns it, and scrub all workflow
-    /// steps that reference its methods.
+    pub fn find_method_mut(&mut self, class_id: Uuid, method_id: Uuid) -> Option<&mut Method> {
+        for ns in &mut self.namespaces {
+            for cls in &mut ns.classes {
+                if cls.id == class_id {
+                    return cls.methods.iter_mut().find(|m| m.id == method_id);
+                }
+            }
+        }
+        None
+    }
+
+    /// Remove a class from whichever namespace owns it, scrub workflow steps and
+    /// method step connections that reference it.
     pub fn remove_class(&mut self, class_id: Uuid) {
         for ns in &mut self.namespaces {
             ns.remove_class(class_id);
@@ -295,6 +342,18 @@ impl Workspace {
                 .collect();
             for id in dead {
                 workflow.remove_step(id);
+            }
+        }
+        // Clear method step connections pointing to the removed class.
+        for ns in &mut self.namespaces {
+            for cls in &mut ns.classes {
+                for method in &mut cls.methods {
+                    for step in &mut method.steps {
+                        if step.connection.as_ref().map_or(false, |c| c.class_id == class_id) {
+                            step.connection = None;
+                        }
+                    }
+                }
             }
         }
     }
@@ -399,5 +458,59 @@ mod tests {
         global.is_global = true;
         ns.add_class(global);
         assert!(ns.classes[0].is_global);
+    }
+
+    #[test]
+    fn method_step_add_remove() {
+        let mut method = Method::new("GetUser");
+        let step = method.add_step("find correct id");
+        assert_eq!(method.steps.len(), 1);
+        assert_eq!(method.steps[0].statement, "find correct id");
+        method.remove_step(step.id);
+        assert_eq!(method.steps.len(), 0);
+    }
+
+    #[test]
+    fn method_step_connection_serializes_camel_case() {
+        let conn = MethodStepConnection {
+            class_id: Uuid::new_v4(),
+            method_id: Uuid::new_v4(),
+        };
+        let json = serde_json::to_string(&conn).unwrap();
+        assert!(json.contains("\"classId\""), "expected classId, got: {json}");
+        assert!(json.contains("\"methodId\""), "expected methodId, got: {json}");
+        let restored: MethodStepConnection = serde_json::from_str(&json).unwrap();
+        assert_eq!(conn.class_id, restored.class_id);
+    }
+
+    #[test]
+    fn remove_class_scrubs_method_step_connections() {
+        let mut ws = Workspace::new("WS");
+        let mut ns = Namespace::new("App");
+        let ns_id = ns.id;
+
+        let target_class = Class::new("TargetService", ns_id);
+        let target_class_id = target_class.id;
+        let target_method = Method::new("DoWork");
+        let target_method_id = target_method.id;
+        let mut tc = target_class;
+        tc.add_method(target_method);
+        ns.add_class(tc);
+
+        let mut caller = Class::new("CallerService", ns_id);
+        let mut m = Method::new("Execute");
+        let s = m.add_step("delegate to TargetService");
+        m.step_mut(s.id).unwrap().connection = Some(MethodStepConnection {
+            class_id: target_class_id,
+            method_id: target_method_id,
+        });
+        caller.add_method(m);
+        ns.add_class(caller);
+        ws.add_namespace(ns);
+
+        // CallerService is at index 1, TargetService at index 0
+        assert!(ws.namespaces[0].classes[1].methods[0].steps[0].connection.is_some());
+        ws.remove_class(target_class_id);
+        assert!(ws.namespaces[0].classes[0].methods[0].steps[0].connection.is_none());
     }
 }

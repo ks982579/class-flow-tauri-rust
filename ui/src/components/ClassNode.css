@@ -126,6 +126,16 @@
 .mod-badge.static   { background: rgba(80,144,176,0.2); color: var(--mod-static); }
 .mod-badge.readonly { background: var(--amber-dim); color: var(--amber); }
 
+/* Expand arrow on method rows */
+.method-expand {
+  font-size: 9px;
+  color: var(--text-dim);
+  flex-shrink: 0;
+  width: 10px;
+  text-align: center;
+  user-select: none;
+}
+
 /* React Flow handles sitting on method rows */
 .method-handle {
   width: 8px !important;
@@ -137,4 +147,102 @@
 }
 .method-handle:hover {
   background: var(--accent) !important;
+}
+
+/* Method steps (expanded area below a method row) */
+.method-steps {
+  background: rgba(0,0,0,0.2);
+  border-top: 1px solid var(--border);
+  padding: 3px 0 4px;
+}
+
+.step-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 10px 2px 28px;
+  position: relative;
+  font-size: 11px;
+}
+.step-row:hover { background: var(--bg-hover); }
+
+.step-statement {
+  color: var(--text-muted);
+  flex: 1;
+  cursor: text;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.step-statement:hover { color: var(--text-primary); }
+
+.step-connection {
+  font-size: 10px;
+  color: var(--text-dim);
+  white-space: nowrap;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.step-connection:hover { color: var(--amber); text-decoration: line-through; }
+
+.step-delete {
+  font-size: 9px;
+  padding: 0 3px;
+  opacity: 0;
+  transition: opacity 0.1s;
+  flex-shrink: 0;
+  color: var(--text-dim);
+}
+.step-row:hover .step-delete { opacity: 1; }
+
+.step-edit-input {
+  flex: 1;
+  background: var(--bg-base);
+  border: 1px solid var(--accent);
+  border-radius: 3px;
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 11px;
+  padding: 1px 4px;
+  outline: none;
+  min-width: 0;
+}
+
+.step-add-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px 2px 28px;
+}
+
+.step-add-btn {
+  font-size: 12px;
+  padding: 0 4px;
+  color: var(--accent);
+}
+
+.step-new-btn {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 2px 10px 2px 28px;
+  font-size: 10px;
+  color: var(--text-dim);
+  opacity: 0;
+  transition: opacity 0.1s;
+}
+.method-group:hover .step-new-btn { opacity: 1; }
+
+/* React Flow handle on step rows */
+.step-handle {
+  width: 6px !important;
+  height: 6px !important;
+  background: var(--text-dim) !important;
+  border: 1px solid var(--bg-active) !important;
+  border-radius: 50% !important;
+  transition: background 0.1s !important;
+  right: 4px !important;
+}
+.step-handle:hover {
+  background: var(--amber) !important;
 }

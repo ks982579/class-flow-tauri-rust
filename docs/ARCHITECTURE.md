@@ -44,15 +44,17 @@ docs/                 ← this directory
 
 **Key types**:
 ```rust
-Workspace       { id, name, namespaces: Vec<Namespace>, workflows: Vec<Workflow> }
-Namespace       { id, name, classes: Vec<Class> }
-Class           { id, name, namespace_id, properties, methods, nested_classes, is_global: bool }
-Property        { id, name, type_annotation, access: AccessModifier, immutable: bool, static: bool }
-Method          { id, name, parameters: Vec<Parameter>, return_type, access: AccessModifier, static: bool }
-Parameter       { name, type_annotation }
-Workflow        { id, name, steps: Vec<WorkflowStep>, edges: Vec<StepEdge> }
-WorkflowStep    { id, kind: StepKind }   // StepKind = MethodCall | ClassMutation
-StepEdge        { from_step_id, to_step_id }
+Workspace            { id, name, namespaces: Vec<Namespace>, workflows: Vec<Workflow> }
+Namespace            { id, name, classes: Vec<Class> }
+Class                { id, name, namespace_id, properties, methods, nested_classes, is_global: bool }
+Property             { id, name, type_annotation, access: AccessModifier, immutable: bool, static: bool }
+Method               { id, name, parameters: Vec<Parameter>, return_type, access: AccessModifier, static: bool, steps: Vec<MethodStep> }
+MethodStep           { id, statement: String, connection: Option<MethodStepConnection> }
+MethodStepConnection { class_id, method_id }   // references the method this step delegates to
+Parameter            { name, type_annotation }
+Workflow             { id, name, steps: Vec<WorkflowStep>, edges: Vec<StepEdge> }
+WorkflowStep         { id, kind: StepKind }   // StepKind = MethodCall | ClassMutation
+StepEdge             { from_step_id, to_step_id }
 ```
 
 **Enums**:
@@ -86,11 +88,18 @@ trait PlatformBridge {
     fn connect_methods(&self, ws: &mut Workspace, workflow_id: Uuid,
                        from_class_id: Uuid, from_method_id: Uuid,
                        to_class_id: Uuid,   to_method_id: Uuid) -> BridgeResult<()>;
+    fn add_method_step(&self, ws: &mut Workspace, class_id: Uuid, method_id: Uuid, statement: String) -> BridgeResult<MethodStep>;
+    fn update_method_step(&self, ws: &mut Workspace, class_id: Uuid, method_id: Uuid, step_id: Uuid, statement: String) -> BridgeResult<()>;
+    fn remove_method_step(&self, ws: &mut Workspace, class_id: Uuid, method_id: Uuid, step_id: Uuid) -> BridgeResult<()>;
+    fn set_method_step_connection(&self, ws: &mut Workspace, class_id: Uuid, method_id: Uuid, step_id: Uuid, target_class_id: Uuid, target_method_id: Uuid) -> BridgeResult<()>;
+    fn clear_method_step_connection(&self, ws: &mut Workspace, class_id: Uuid, method_id: Uuid, step_id: Uuid) -> BridgeResult<()>;
     // ... full namespace / class / property / method / workflow / step CRUD
 }
 ```
 
 `connect_methods` is the key compound operation: it find-or-creates a `MethodCall` step for each endpoint (reusing an existing step when the same class+method is already in the workflow), then connects them with a `StepEdge`.
+
+`set_method_step_connection` / `clear_method_step_connection` wire or unwire a `MethodStep`'s delegation arrow to another class method.
 
 ### `AppState`
 
@@ -124,7 +133,7 @@ Workspace saved as pretty-printed JSON (`serde_json`) to a user-chosen path. The
 
 **Stack**: React 19 + TypeScript, bundled with Vite. Runs inside the Tauri webview.
 
-**Canvas library**: `@xyflow/react` v12 (React Flow). Class nodes are custom node components; workflow step connections are React Flow edges derived from the active workflow's `steps` + `edges` arrays.
+**Canvas library**: `@xyflow/react` v12 (React Flow). Class nodes are custom node components. Two independent sets of edges are rendered: workflow edges (animated, accent-colored, derived from the active workflow's `steps` + `edges` arrays) and method step delegation edges (dashed, muted-color, always visible, derived from `MethodStep.connection` across all classes).
 
 **Communication**: `@tauri-apps/api/core`'s `invoke` function only, via a typed wrapper in `ui/src/api.ts`. The UI never imports `tauri` outside of that file.
 

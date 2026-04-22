@@ -71,4 +71,22 @@ export const api = {
     toClassId: string,  toMethodId: string,
   ) =>
     invoke<Workspace>('connect_methods', { workflowId, fromClassId, fromMethodId, toClassId, toMethodId }),
+
+  addMethodStep: (classId: string, methodId: string, statement: string) =>
+    invoke<Workspace>('add_method_step', { classId, methodId, statement }),
+
+  updateMethodStep: (classId: string, methodId: string, stepId: string, statement: string) =>
+    invoke<Workspace>('update_method_step', { classId, methodId, stepId, statement }),
+
+  removeMethodStep: (classId: string, methodId: string, stepId: string) =>
+    invoke<Workspace>('remove_method_step', { classId, methodId, stepId }),
+
+  setMethodStepConnection: (
+    classId: string, methodId: string, stepId: string,
+    targetClassId: string, targetMethodId: string,
+  ) =>
+    invoke<Workspace>('set_method_step_connection', { classId, methodId, stepId, targetClassId, targetMethodId }),
+
+  clearMethodStepConnection: (classId: string, methodId: string, stepId: string) =>
+    invoke<Workspace>('clear_method_step_connection', { classId, methodId, stepId }),
 };
